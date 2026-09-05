@@ -1,0 +1,268 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
+:root {
+  --bg-dark: #090d16;
+  --bg-surface: #111827;
+  --bg-card: #182234;
+  --bg-card-hover: #1f2d45;
+  --bg-glass: rgba(24, 34, 52, 0.85);
+  
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-highlight: rgba(6, 182, 212, 0.4);
+
+  --text-main: #f3f4f6;
+  --text-muted: #9ca3af;
+  --text-dim: #6b7280;
+
+  --accent-primary: #06b6d4;
+  --accent-primary-glow: rgba(6, 182, 212, 0.3);
+  --accent-success: #10b981;
+  --accent-warning: #f59e0b;
+  --accent-danger: #ef4444;
+  --accent-purple: #a855f7;
+
+  --pos-qb: #a855f7;
+  --pos-rb: #10b981;
+  --pos-wr: #06b6d4;
+  --pos-te: #f59e0b;
+  --pos-k: #64748b;
+  --pos-dst: #ec4899;
+
+  --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.4;
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(6, 182, 212, 0.07) 0%, transparent 45%),
+    radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.06) 0%, transparent 45%);
+
+  /* iOS Safe Area Padding */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+/* Glass Card Component */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: border-color 0.2s ease;
+}
+
+/* Position Badges */
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.725rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.pos-QB { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+.pos-RB { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+.pos-WR { background: rgba(6, 182, 212, 0.2); color: #38bdf8; border: 1px solid rgba(6, 182, 212, 0.4); }
+.pos-TE { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+.pos-K { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.4); }
+.pos-DST { background: rgba(236, 72, 153, 0.2); color: #f472b6; border: 1px solid rgba(236, 72, 153, 0.4); }
+
+/* Touch-Friendly Buttons for Mobile */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 10px 14px;
+  min-height: 42px; /* iOS Minimum Touch Target Height */
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #06b6d4, #0284c7);
+  color: #ffffff;
+  box-shadow: 0 4px 12px var(--accent-primary-glow);
+}
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+.btn-success:active {
+  transform: scale(0.97);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+}
+
+.btn-outline {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+.btn-outline:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-icon {
+  padding: 8px;
+  min-width: 42px;
+  min-height: 42px;
+}
+
+/* Value Tags */
+.value-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.725rem;
+  font-weight: 700;
+}
+.value-bargain { background: rgba(16, 185, 129, 0.25); color: #34d399; }
+.value-fair { background: rgba(59, 130, 246, 0.25); color: #60a5fa; }
+.value-overpriced { background: rgba(239, 68, 68, 0.25); color: #f87171; }
+
+/* Desktop Grid Layout */
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 16px;
+  max-width: 1700px;
+  margin: 0 auto;
+}
+
+@media (min-width: 1024px) {
+  .main-layout {
+    grid-template-columns: 380px 1fr;
+    gap: 20px;
+    padding: 20px;
+  }
+}
+
+/* iPhone 17 Pro / Mobile Responsive Adjustments (<768px) */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .main-layout {
+    padding: 10px;
+    gap: 12px;
+  }
+
+  .glass-card {
+    border-radius: 10px;
+    padding: 14px !important;
+  }
+
+  /* Compact Header for iPhone */
+  header {
+    margin: 10px 10px 0 10px !important;
+    padding: 12px 14px !important;
+  }
+
+  header h1 {
+    font-size: 1.1rem !important;
+  }
+
+  /* Touch Scrollable Tabs */
+  .mobile-tabs-scroll {
+    display: flex;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .mobile-tabs-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Compact Table for Mobile */
+  table {
+    font-size: 0.8rem !important;
+  }
+  th, td {
+    padding: 8px 6px !important;
+  }
+
+  /* Hide lower-priority columns on small iPhone screens */
+  .mobile-hide {
+    display: none !important;
+  }
+}
+
+/* iPhone 17 Pro Action Buttons Grid */
+.action-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+@media (max-width: 480px) {
+  .action-buttons-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}
+
+/* Pulse animation */
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 10px rgba(6, 182, 212, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.7); }
+  100% { box-shadow: 0 0 10px rgba(6, 182, 212, 0.3); }
+}
+
+.active-podium-glow {
+  animation: pulseGlow 2.5s infinite;
+  border-color: var(--accent-primary) !important;
+}
