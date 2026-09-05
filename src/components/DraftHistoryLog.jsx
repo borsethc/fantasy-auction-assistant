@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuction } from '../context/AuctionContext';
-import { History, RotateCcw, Edit2, Check, X, TrendingUp, TrendingDown } from 'lucide-react';
+import { History, RotateCcw, Edit2, Check, X, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 
 export function DraftHistoryLog() {
-  const { draftLog, players, teamsDetailed, undoLastPick, editPick, draftStats } = useAuction();
+  const { draftLog, players, teamsDetailed, undoLastPick, editPick, removePlayerFromRoster, draftStats } = useAuction();
   
   const [editingPickNum, setEditingPickNum] = useState(null);
   const [editTeamId, setEditTeamId] = useState('');
@@ -140,13 +140,26 @@ export function DraftHistoryLog() {
                     </div>
 
                     {!isEditing ? (
-                      <button 
-                        onClick={() => handleStartEdit(item)}
-                        style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
-                        title="Edit pick"
-                      >
-                        <Edit2 size={14} />
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <button 
+                          onClick={() => handleStartEdit(item)}
+                          style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                          title="Edit pick"
+                        >
+                          <Edit2 size={14} />
+                        </button>
+                        <button 
+                          onClick={() => {
+                            if (window.confirm(`Delete pick #${item.pickNum} (${player?.name}) and return player to available pool?`)) {
+                              removePlayerFromRoster(item.playerId, item.pickNum);
+                            }
+                          }}
+                          style={{ background: 'transparent', border: 'none', color: '#f87171', cursor: 'pointer', padding: '4px' }}
+                          title="Delete pick & return to available pool"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     ) : (
                       <div style={{ display: 'flex', gap: '4px' }}>
                         <button onClick={() => handleSaveEdit(item.pickNum)} style={{ background: 'var(--accent-success)', border: 'none', borderRadius: '4px', color: '#fff', padding: '2px 6px', cursor: 'pointer' }}>

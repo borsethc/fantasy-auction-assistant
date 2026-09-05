@@ -83,7 +83,23 @@ export function PlayerCheatSheet() {
           <h2 style={{ fontSize: '1.1rem', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
             Player Rankings & Quick Draft
           </h2>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '3px' }}>
+            <span style={{ 
+              background: 'rgba(6, 182, 212, 0.15)', 
+              color: 'var(--accent-primary)', 
+              border: '1px solid rgba(6, 182, 212, 0.4)',
+              padding: '2px 8px', 
+              borderRadius: '6px', 
+              fontSize: '0.725rem', 
+              fontWeight: 800,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}>
+              💰 Est. Auction Price: Dynamic Inflation-Adjusted Values
+            </span>
+          </div>
+          <p style={{ fontSize: '0.725rem', color: 'var(--text-muted)', marginTop: '3px' }}>
             Log picks to your team or opponents with 1-click
           </p>
         </div>
@@ -233,7 +249,9 @@ export function PlayerCheatSheet() {
                 Base $
               </th>
               <th style={{ padding: '8px 8px', cursor: 'pointer' }} onClick={() => handleSort('dynamicValue')}>
-                <span style={{ color: 'var(--accent-primary)' }}>$ <ArrowUpDown size={10} /></span>
+                <span style={{ color: 'var(--accent-primary)', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                  Est. Price <ArrowUpDown size={10} />
+                </span>
               </th>
               <th style={{ padding: '8px 8px', textAlign: 'right' }}>Actions</th>
             </tr>

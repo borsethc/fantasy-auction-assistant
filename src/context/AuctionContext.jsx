@@ -8,18 +8,47 @@ const AuctionContext = createContext();
 const STORAGE_KEY = 'auctionboss_draft_state_2026_v6';
 
 export function AuctionProvider({ children }) {
-  // 1. Settings & Teams State
+  // 1. Settings & Teams State (Default bench 4)
   const [settings, setSettings] = useState(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (parsed.settings) return parsed.settings;
+        if (parsed.settings) {
+          return {
+            ...parsed.settings,
+            rosterSlots: {
+              ...parsed.settings.rosterSlots,
+              BENCH: parsed.settings.rosterSlots?.BENCH === 5 ? 4 : (parsed.settings.rosterSlots?.BENCH ?? 4)
+            }
+          };
+        }
       } catch (e) {
         console.error("Failed parsing settings", e);
       }
     }
     return DEFAULT_LEAGUE_SETTINGS;
+  });
+
+  // Owner PIN & Auction Name State
+  const [ownerPin, setOwnerPin] = useState(() => {
+    return localStorage.getItem('auctionboss_owner_pin') || '1234';
+  });
+
+  const [currentAuctionName, setCurrentAuctionName] = useState(() => {
+    return localStorage.getItem('auctionboss_current_auction_name') || 'Old Guys 2026 FFL Draft';
+  });
+
+  const [savedAuctions, setSavedAuctions] = useState(() => {
+    const saved = localStorage.getItem('auctionboss_saved_auctions_v1');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("Failed parsing saved auctions", e);
+      }
+    }
+    return [];
   });
 
   // 2. Players Database
@@ -374,20 +403,114 @@ export function AuctionProvider({ children }) {
     setPlayers(prev => prev.map(p => p.id === playerId ? { ...p, notes: noteText } : p));
   };
 
+  // DELETE / UNDO SPECIFIC DRAFTED PLAYER FROM ROSTER & RETURN TO AVAILABLE POOL
+  const removePlayerFromRoster = (playerId, pickNum) => {
+    // 1. Remove pick from draftLog
+    setDraftLog(prev => {
+      if (pickNum !== undefined) {
+        return prev.filter(item => item.pickNum !== pickNum);
+      }
+      return prev.filter(item => item.playerId !== playerId);
+    });
+
+    // 2. Return player to available pool
+    setPlayers(prev => prev.map(p => {
+      if (p.id === playerId) {
+        return {
+          ...p,
+          status: 'AVAILABLE',
+          draftedBy: null,
+          cost: 0
+        };
+      }
+      return p;
+    }));
+
+    // 3. Reset active nomination if it matches this player
+    if (activeNomination?.playerId === playerId) {
+      setActiveNomination(null);
+    }
+
+    sounds.playBidTick();
+  };
+
+  // START NEW AUCTION WITH PIN PROTECTION & SEPARATE PROFILES
+  const startNewAuction = (newAuctionName = 'Old Guys 2026 FFL Draft', pinAttempt = '', options = {}) => {
+    // Check PIN if owner has configured one
+    if (ownerPin && pinAttempt && pinAttempt !== ownerPin) {
+      return { success: false, error: 'Incorrect Security PIN. Please enter the correct owner PIN.' };
+    }
+
+    // Optionally archive current draft if it has picks
+    if (options.archiveCurrent !== false && draftLog.length > 0) {
+      const archiveEntry = {
+        id: `auction-${Date.now()}`,
+        name: currentAuctionName || 'Previous Draft',
+        date: new Date().toISOString(),
+        picksCount: draftLog.length,
+        state: {
+          settings,
+          players,
+          draftLog,
+          targetIds
+        }
+      };
+      setSavedAuctions(prev => {
+        const updated = [archiveEntry, ...prev.slice(0, 9)];
+        localStorage.setItem('auctionboss_saved_auctions_v1', JSON.stringify(updated));
+        return updated;
+      });
+    }
+
+    // Reset draft log and nomination
+    setDraftLog([]);
+    setActiveNomination(null);
+    setTargetIds([]);
+
+    // Reset all players to AVAILABLE status
+    setPlayers(INITIAL_PLAYERS.map(p => ({
+      ...p,
+      status: 'AVAILABLE',
+      draftedBy: null,
+      cost: 0,
+      isTarget: false,
+      notes: p.notes || ''
+    })));
+
+    // Reset settings with BENCH: 4
+    const freshSettings = {
+      ...DEFAULT_LEAGUE_SETTINGS,
+      leagueName: newAuctionName,
+      rosterSlots: {
+        ...DEFAULT_LEAGUE_SETTINGS.rosterSlots,
+        BENCH: 4
+      }
+    };
+    setSettings(freshSettings);
+    setCurrentAuctionName(newAuctionName);
+    localStorage.setItem('auctionboss_current_auction_name', newAuctionName);
+
+    // Update PIN if requested
+    if (options.newPin) {
+      setOwnerPin(options.newPin);
+      localStorage.setItem('auctionboss_owner_pin', options.newPin);
+    }
+
+    return { success: true };
+  };
+
+  const updateOwnerPin = (newPin) => {
+    if (newPin && newPin.trim().length >= 4) {
+      setOwnerPin(newPin.trim());
+      localStorage.setItem('auctionboss_owner_pin', newPin.trim());
+      return true;
+    }
+    return false;
+  };
+
   const resetDraftState = () => {
     if (window.confirm("Are you sure you want to reset the entire draft? All logged picks will be cleared.")) {
-      setDraftLog([]);
-      setActiveNomination(null);
-      setSettings(DEFAULT_LEAGUE_SETTINGS);
-      setPlayers(INITIAL_PLAYERS.map(p => ({
-        ...p,
-        status: 'AVAILABLE',
-        draftedBy: null,
-        cost: 0,
-        isTarget: false,
-        notes: p.notes || ''
-      })));
-      localStorage.removeItem(STORAGE_KEY);
+      startNewAuction(currentAuctionName, ownerPin, { archiveCurrent: true });
     }
   };
 
@@ -601,6 +724,12 @@ export function AuctionProvider({ children }) {
       toggleTargetPlayer,
       updatePlayerNote,
       resetDraftState,
+      startNewAuction,
+      ownerPin,
+      updateOwnerPin,
+      currentAuctionName,
+      savedAuctions,
+      removePlayerFromRoster,
       loadDemoData,
       exportDraftCSV,
       exportStateJSON,

@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAuction } from '../context/AuctionContext';
-import { Trophy, DollarSign, Shield, CheckCircle, AlertCircle, Sparkles } from 'lucide-react';
+import { Trophy, DollarSign, Shield, CheckCircle, AlertCircle, Sparkles, Trash2 } from 'lucide-react';
 
 export function MyTeamSummary() {
-  const { teamsDetailed, settings } = useAuction();
+  const { teamsDetailed, settings, removePlayerFromRoster } = useAuction();
   const userTeam = teamsDetailed.find(t => t.isUser) || teamsDetailed[0];
 
   if (!userTeam) return null;
@@ -36,7 +36,7 @@ export function MyTeamSummary() {
   addSlots('K', slotsConfig.K ?? 1);
   addSlots('DST', slotsConfig.DST ?? 1);
 
-  // Bench slots (5)
+  // Bench slots (4)
   const benchDrafted = [
     ...(userRoster.QB?.slice(slotsConfig.QB ?? 1) || []),
     ...(userRoster.RB?.slice(slotsConfig.RB ?? 2) || []),
@@ -46,13 +46,17 @@ export function MyTeamSummary() {
     ...(userRoster.DST?.slice(slotsConfig.DST ?? 1) || []),
   ];
 
-  for (let b = 0; b < (slotsConfig.BENCH ?? 5); b++) {
+  const benchCount = slotsConfig.BENCH ?? 4;
+  for (let b = 0; b < benchCount; b++) {
     slotItems.push({
       slotName: `BN${b + 1}`,
       pos: 'BENCH',
       player: benchDrafted[b] || null
     });
   }
+
+  const starterCount = 8 + (slotsConfig.FLEX > 0 ? slotsConfig.FLEX : 0);
+  const totalSlotsCount = starterCount + benchCount;
 
   return (
     <div className="glass-card" style={{ padding: '20px', borderColor: 'var(--border-highlight)' }}>
@@ -66,7 +70,7 @@ export function MyTeamSummary() {
               {userTeam.name}
             </h2>
             <p style={{ fontSize: '0.775rem', color: 'var(--text-muted)' }}>
-              13 Roster Slots (8 Starters: 1 QB, 2 RB, 2 WR, 1 TE, 1 K, 1 DST · 5 Bench)
+              {totalSlotsCount} Roster Slots ({starterCount} Starters: 1 QB, 2 RB, 2 WR, 1 TE, 1 K, 1 DST · {benchCount} Bench)
             </p>
           </div>
         </div>
@@ -128,9 +132,31 @@ export function MyTeamSummary() {
               </div>
 
               {isFilled ? (
-                <span style={{ fontWeight: 800, color: 'var(--accent-primary)', fontSize: '0.9rem' }}>
-                  ${slot.player.cost}
-                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ fontWeight: 800, color: 'var(--accent-primary)', fontSize: '0.9rem' }}>
+                    ${slot.player.cost}
+                  </span>
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`Delete ${slot.player.name} from your roster and return to available pool?`)) {
+                        removePlayerFromRoster(slot.player.id, slot.player.pickNum);
+                      }
+                    }}
+                    style={{
+                      background: 'rgba(239, 68, 68, 0.15)',
+                      border: '1px solid rgba(239, 68, 68, 0.35)',
+                      borderRadius: '4px',
+                      color: '#f87171',
+                      padding: '2px 4px',
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center'
+                    }}
+                    title="Delete player & refund budget"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                </div>
               ) : (
                 <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                   Need

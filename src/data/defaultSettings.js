@@ -73,6 +73,6 @@ export const DEFAULT_LEAGUE_SETTINGS = {
     "FLEX": 0,
     "K": 1,
     "DST": 1,
-    "BENCH": 5
+    "BENCH": 4
   }
 };

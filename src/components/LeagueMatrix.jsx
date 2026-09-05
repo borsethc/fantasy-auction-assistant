@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useAuction } from '../context/AuctionContext';
-import { Shield, DollarSign, Users, Award, ChevronDown, ChevronUp, Zap, ListFilter, LayoutGrid, Eye } from 'lucide-react';
+import { Shield, DollarSign, Users, Award, ChevronDown, ChevronUp, Zap, ListFilter, LayoutGrid, Eye, Trash2 } from 'lucide-react';
 
 export function LeagueMatrix() {
-  const { teamsDetailed, settings, totalRosterSpotsPerTeam } = useAuction();
+  const { teamsDetailed, settings, totalRosterSpotsPerTeam, removePlayerFromRoster } = useAuction();
   const [viewMode, setViewMode] = useState('GRID'); // 'GRID' | 'FULL_ROSTERS'
   const [selectedOwnerFilter, setSelectedOwnerFilter] = useState('ALL');
   const [expandedTeamId, setExpandedTeamId] = useState(null);
@@ -249,7 +249,30 @@ export function LeagueMatrix() {
                               <span className={`pos-badge pos-${p.playerSnapshot?.pos}`}>{p.playerSnapshot?.pos}</span>
                               <span style={{ fontWeight: 700, color: '#ffffff' }}>{p.playerSnapshot?.name}</span>
                             </div>
-                            <span style={{ fontWeight: 800, color: 'var(--accent-primary)' }}>${p.cost}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontWeight: 800, color: 'var(--accent-primary)' }}>${p.cost}</span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (window.confirm(`Delete ${p.playerSnapshot?.name} from ${team.name} and return to available pool?`)) {
+                                    removePlayerFromRoster(p.playerId, p.pickNum);
+                                  }
+                                }}
+                                style={{
+                                  background: 'rgba(239, 68, 68, 0.15)',
+                                  border: '1px solid rgba(239, 68, 68, 0.35)',
+                                  borderRadius: '4px',
+                                  color: '#f87171',
+                                  padding: '2px 4px',
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center'
+                                }}
+                                title="Delete from roster (return to available pool)"
+                              >
+                                <Trash2 size={11} />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -327,9 +350,31 @@ export function LeagueMatrix() {
                           <span style={{ fontWeight: 700, color: '#ffffff' }}>{pick.playerSnapshot?.name}</span>
                         </div>
 
-                        <span style={{ fontWeight: 800, color: 'var(--accent-primary)', fontSize: '0.9rem' }}>
-                          ${pick.cost}
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: 800, color: 'var(--accent-primary)', fontSize: '0.9rem' }}>
+                            ${pick.cost}
+                          </span>
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Delete ${pick.playerSnapshot?.name} from ${team.name} and return to available pool?`)) {
+                                removePlayerFromRoster(pick.playerId, pick.pickNum);
+                              }
+                            }}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              border: '1px solid rgba(239, 68, 68, 0.35)',
+                              borderRadius: '4px',
+                              color: '#f87171',
+                              padding: '2px 5px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center'
+                            }}
+                            title="Delete from roster (return to available pool)"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       </div>
                     ))
                   ) : (

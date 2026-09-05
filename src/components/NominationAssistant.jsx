@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuction } from '../context/AuctionContext';
-import { Lightbulb, Flame, Target, DollarSign, Zap } from 'lucide-react';
+import { Lightbulb, Target, DollarSign, Zap } from 'lucide-react';
 
 export function NominationAssistant() {
   const { players, teamsDetailed, startNomination } = useAuction();
@@ -11,17 +11,12 @@ export function NominationAssistant() {
 
   const userTeam = teamsDetailed.find(t => t.isUser) || teamsDetailed[0];
 
-  // 1. Top Tier Player to Bleed Money
-  const topTierToBleed = available
-    .filter(p => p.tier === 1 || p.tier === 2)
-    .sort((a, b) => (b.dynamicValue || b.baseValue) - (a.dynamicValue || a.baseValue))[0];
-
-  // 2. High Value Target Star
+  // 1. High Value Target Star
   const valueTarget = available
     .filter(p => p.isTarget || p.tier <= 3)
     .sort((a, b) => (b.projPts / (b.dynamicValue || b.baseValue)) - (a.projPts / (a.dynamicValue || a.baseValue)))[0];
 
-  // 3. $1 Dollar Sleeper
+  // 2. $1 Dollar Sleeper
   const dollarSleeper = available
     .filter(p => (p.dynamicValue || p.baseValue) <= 5 && (p.tier === 4 || p.tier === 5))
     .sort((a, b) => b.projPts - a.projPts)[0];
@@ -37,31 +32,6 @@ export function NominationAssistant() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
-        
-        {/* Strategy 1: Bleed Rivals */}
-        {topTierToBleed && (
-          <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-color)', borderRadius: '8px', padding: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <span style={{ fontSize: '0.725rem', fontWeight: 700, color: 'var(--accent-danger)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Flame size={12} /> Bleed Rival Cash
-              </span>
-              <span className={`pos-badge pos-${topTierToBleed.pos}`}>{topTierToBleed.pos}</span>
-            </div>
-            <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '2px' }}>
-              {topTierToBleed.name}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
-              Force opponents with cash to fight for top {topTierToBleed.pos}
-            </div>
-            <button 
-              onClick={() => startNomination(topTierToBleed, 1)}
-              className="btn btn-outline" 
-              style={{ width: '100%', fontSize: '0.75rem', padding: '4px 8px' }}
-            >
-              Nominate ${topTierToBleed.dynamicValue || topTierToBleed.baseValue} Player
-            </button>
-          </div>
-        )}
 
         {/* Strategy 2: Value Snag */}
         {valueTarget && (

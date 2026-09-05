@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { sounds } from '../utils/soundEffects';
 
-export function Header({ onOpenSettings }) {
+export function Header({ onOpenSettings, onOpenStartNewAuction }) {
   const { 
     settings, 
     draftStats, 
@@ -14,7 +14,8 @@ export function Header({ onOpenSettings }) {
     exportDraftCSV, 
     exportStateJSON, 
     importStateJSON, 
-    resetDraftState 
+    resetDraftState,
+    currentAuctionName 
   } = useAuction();
 
   const fileInputRef = useRef(null);
@@ -154,12 +155,17 @@ export function Header({ onOpenSettings }) {
             <Download size={15} />
           </button>
 
-          <button onClick={onOpenSettings} className="btn btn-outline btn-icon" title="League Settings">
-            <Settings size={15} />
+          <button 
+            onClick={onOpenStartNewAuction} 
+            className="btn btn-primary" 
+            style={{ padding: '6px 12px', fontSize: '0.75rem', fontWeight: 800, background: 'linear-gradient(135deg, #06b6d4, #0891b2)' }} 
+            title="Start New Auction (PIN-Protected)"
+          >
+            <RefreshCw size={14} /> New Auction
           </button>
 
-          <button onClick={resetDraftState} className="btn btn-outline btn-icon" style={{ color: 'var(--accent-danger)' }} title="Reset Draft">
-            <RefreshCw size={15} />
+          <button onClick={onOpenSettings} className="btn btn-outline btn-icon" title="League Settings">
+            <Settings size={15} />
           </button>
 
         </div>

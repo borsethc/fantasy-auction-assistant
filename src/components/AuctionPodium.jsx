@@ -218,7 +218,7 @@ export function AuctionPodium() {
                             {p.name}
                           </div>
                           <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                            {p.team} · Proj: {p.projPts} pts · Target: ${targetPrice}
+                            {p.team} · Est. Auction Price: <strong style={{ color: 'var(--accent-primary)' }}>${targetPrice}</strong> (Base: ${p.baseValue})
                           </div>
                         </div>
                       </div>
@@ -327,7 +327,7 @@ export function AuctionPodium() {
               </div>
 
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Target Value</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>Est. Auction Price</div>
                 <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--accent-primary)' }}>
                   ${activePlayer.dynamicValue || activePlayer.baseValue}
                 </div>

@@ -5,11 +5,17 @@ import {
   FileSpreadsheet, Download, CheckCircle, HelpCircle 
 } from 'lucide-react';
 
-export function SettingsModal({ isOpen, onClose }) {
+export function SettingsModal({ isOpen, onClose, onOpenStartNewAuction }) {
   const { settings, setSettings, importTeamsCSV, importPlayerRankingsCSV } = useAuction();
 
   const [activeSubTab, setActiveSubTab] = useState('MANUAL'); // 'MANUAL' | 'IMPORT_TEAMS' | 'IMPORT_RANKINGS'
-  const [form, setForm] = useState(() => settings);
+  const [form, setForm] = useState(() => ({
+    ...settings,
+    rosterSlots: {
+      ...settings.rosterSlots,
+      BENCH: settings.rosterSlots?.BENCH === 5 ? 4 : (settings.rosterSlots?.BENCH ?? 4)
+    }
+  }));
 
   // Import State Text Area
   const [teamsText, setTeamsText] = useState('');
@@ -271,9 +277,23 @@ export function SettingsModal({ isOpen, onClose }) {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
-              <button type="button" onClick={onClose} className="btn btn-outline">Cancel</button>
-              <button type="submit" className="btn btn-primary"><Save size={16} /> Save League Settings</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
+              <button 
+                type="button" 
+                onClick={() => {
+                  onClose();
+                  if (onOpenStartNewAuction) onOpenStartNewAuction();
+                }} 
+                className="btn btn-outline"
+                style={{ color: '#f87171', borderColor: 'rgba(239,68,68,0.4)', fontSize: '0.8rem' }}
+              >
+                Reset & Start New Draft (PIN)
+              </button>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="button" onClick={onClose} className="btn btn-outline">Cancel</button>
+                <button type="submit" className="btn btn-primary"><Save size={16} /> Save League Settings</button>
+              </div>
             </div>
           </form>
         )}
