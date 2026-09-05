@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useAuction } from '../context/AuctionContext';
 import { 
   Search, Star, Filter, ArrowUpDown, Flame, PlusCircle, 
-  Check, MessageSquare, Info, ShieldAlert, UserCheck, Users, UserX 
+  Check, MessageSquare, Info, ShieldAlert, UserCheck, Users, UserX, Trash2 
 } from 'lucide-react';
 
 export function PlayerCheatSheet() {
@@ -11,7 +11,9 @@ export function PlayerCheatSheet() {
     startNomination, 
     draftPlayerToMyTeam,
     draftPlayerToOpponent,
+    assignPlayerToTeam,
     removePlayerFromAvailable,
+    removePlayerFromRoster,
     toggleTargetPlayer, 
     updatePlayerNote,
     teamsDetailed 
@@ -325,38 +327,120 @@ export function PlayerCheatSheet() {
                     </td>
 
                     {/* Touch Action Buttons */}
+                    {/* Touch Action Buttons & Team Assignment Dropdown */}
                     <td style={{ padding: '8px 6px', textAlign: 'right' }}>
                       {!isDrafted ? (
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px', flexWrap: 'nowrap' }}>
                           <button
                             onClick={() => draftPlayerToMyTeam(p, price)}
                             className="btn btn-success"
-                            style={{ padding: '6px 8px', fontSize: '0.7rem', fontWeight: 800, minHeight: '36px' }}
+                            style={{ padding: '6px 8px', fontSize: '0.7rem', fontWeight: 800, minHeight: '34px', whiteSpace: 'nowrap' }}
                             title="Draft to My Team"
                           >
                             + You
                           </button>
 
-                          <button
-                            onClick={() => draftPlayerToOpponent(p, price)}
-                            className="btn btn-outline"
-                            style={{ padding: '6px 8px', fontSize: '0.7rem', color: 'var(--text-muted)', minHeight: '36px' }}
-                            title="Mark Opponent Drafted"
+                          {/* Team Selection Dropdown (includes Unknown Team) */}
+                          <select
+                            value=""
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                assignPlayerToTeam(p.id, e.target.value, price);
+                              }
+                            }}
+                            style={{
+                              background: 'rgba(0,0,0,0.5)',
+                              color: '#38bdf8',
+                              border: '1px solid var(--border-highlight)',
+                              borderRadius: '6px',
+                              padding: '6px 8px',
+                              fontSize: '0.725rem',
+                              fontWeight: 700,
+                              outline: 'none',
+                              cursor: 'pointer',
+                              maxWidth: '125px',
+                              minHeight: '34px'
+                            }}
+                            title="Assign to specific team or Unknown Team"
                           >
-                            Opponent
+                            <option value="">Assign Team...</option>
+                            <option value={teamsDetailed.find(t => t.isUser)?.id}>Chad Borseth (You)</option>
+                            <optgroup label="League Opponents">
+                              {teamsDetailed.filter(t => !t.isUser && t.id !== 'team-opponent').map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </optgroup>
+                            <option value="team-opponent">❓ Unknown Team</option>
+                          </select>
+
+                          <button
+                            onClick={() => assignPlayerToTeam(p.id, 'team-opponent', price)}
+                            className="btn btn-outline"
+                            style={{ padding: '6px 6px', fontSize: '0.7rem', color: '#fbbf24', borderColor: 'rgba(245, 158, 11, 0.4)', minHeight: '34px', whiteSpace: 'nowrap' }}
+                            title="Quick assign to Unknown Team"
+                          >
+                            ? Unknown
                           </button>
 
                           <button
                             onClick={() => removePlayerFromAvailable(p, 0)}
                             className="btn btn-outline"
-                            style={{ padding: '6px 8px', fontSize: '0.7rem', color: '#f87171', borderColor: 'rgba(239,68,68,0.4)', minHeight: '36px' }}
-                            title="Remove from available pool (Taken)"
+                            style={{ padding: '6px 6px', fontSize: '0.7rem', color: '#f87171', borderColor: 'rgba(239,68,68,0.4)', minHeight: '34px' }}
+                            title="Mark Taken"
                           >
                             <UserX size={12} />
                           </button>
                         </div>
                       ) : (
-                        <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Taken</span>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '4px' }}>
+                          {/* Re-assign Dropdown for already drafted players */}
+                          <select
+                            value={p.draftedBy || 'team-opponent'}
+                            onChange={(e) => assignPlayerToTeam(p.id, e.target.value, p.cost)}
+                            style={{
+                              background: p.draftedBy === 'team-opponent' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(0,0,0,0.5)',
+                              color: p.draftedBy === 'team-opponent' ? '#fbbf24' : (draftedTeam?.isUser ? '#34d399' : '#93c5fd'),
+                              border: p.draftedBy === 'team-opponent' ? '1px solid #f59e0b' : '1px solid var(--border-color)',
+                              borderRadius: '6px',
+                              padding: '4px 6px',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              outline: 'none',
+                              cursor: 'pointer',
+                              maxWidth: '120px'
+                            }}
+                            title="Re-assign to a different team or Unknown Team"
+                          >
+                            <option value={teamsDetailed.find(t => t.isUser)?.id}>Chad Borseth (You)</option>
+                            <optgroup label="League Opponents">
+                              {teamsDetailed.filter(t => !t.isUser && t.id !== 'team-opponent').map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </optgroup>
+                            <option value="team-opponent">❓ Unknown Team</option>
+                          </select>
+
+                          <button
+                            onClick={() => {
+                              if (window.confirm(`Delete ${p.name} from roster and return to available pool?`)) {
+                                removePlayerFromRoster(p.id);
+                              }
+                            }}
+                            style={{
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              border: '1px solid rgba(239, 68, 68, 0.35)',
+                              borderRadius: '4px',
+                              color: '#f87171',
+                              padding: '4px 6px',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center'
+                            }}
+                            title="Undo pick & return to available pool"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
                       )}
                     </td>
 

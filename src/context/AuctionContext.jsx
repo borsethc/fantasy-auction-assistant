@@ -134,14 +134,19 @@ export function AuctionProvider({ children }) {
   // Derived Teams with remaining budget, max bid, and filled roster
   const teamsDetailed = useMemo(() => {
     return settings.teams.map(team => {
+      const isUnknownTeam = team.id === 'team-opponent';
+      const teamName = isUnknownTeam 
+        ? (team.name && !team.name.includes('Other') ? team.name : 'Unknown Team (Unassigned)')
+        : team.name;
+
       const teamPicks = draftLog.filter(log => log.teamId === team.id);
       const totalSpent = teamPicks.reduce((sum, item) => sum + item.cost, 0);
-      const remainingBudget = settings.salaryCap - totalSpent;
+      const remainingBudget = isUnknownTeam ? 999 : (settings.salaryCap - totalSpent);
       const filledSpotsCount = teamPicks.length;
-      const openSpotsCount = Math.max(0, totalRosterSpotsPerTeam - filledSpotsCount);
+      const openSpotsCount = isUnknownTeam ? 99 : Math.max(0, totalRosterSpotsPerTeam - filledSpotsCount);
 
-      let maxBid = 0;
-      if (openSpotsCount > 0) {
+      let maxBid = isUnknownTeam ? 999 : 0;
+      if (!isUnknownTeam && openSpotsCount > 0) {
         maxBid = Math.max(0, remainingBudget - (openSpotsCount - 1));
       }
 
@@ -305,6 +310,30 @@ export function AuctionProvider({ children }) {
   // NEW HELPER: Remove Player from Available List (Instant Taken / Cleared)
   const removePlayerFromAvailable = (player, cost = 0) => {
     draftPlayerToOpponent(player, cost, 'team-opponent');
+  };
+
+  // ASSIGN OR RE-ASSIGN A PLAYER TO A SPECIFIC TEAM (OR UNKNOWN TEAM)
+  const assignPlayerToTeam = (playerId, teamId, cost) => {
+    const targetPlayer = players.find(p => p.id === playerId);
+    if (!targetPlayer) return;
+
+    const existingPick = draftLog.find(l => l.playerId === playerId);
+    const finalPrice = cost !== undefined && !isNaN(parseInt(cost, 10))
+      ? Math.max(0, parseInt(cost, 10))
+      : (targetPlayer.dynamicValue || targetPlayer.baseValue || 1);
+
+    if (existingPick) {
+      // Re-assign already drafted player to new team with price
+      editPick(existingPick.pickNum, teamId, finalPrice);
+      sounds.playBidTick();
+    } else {
+      // Player is available -> draft directly to selected team
+      if (teamId === settings.userTeamId) {
+        draftPlayerToMyTeam(targetPlayer, finalPrice);
+      } else {
+        draftPlayerToOpponent(targetPlayer, finalPrice, teamId || 'team-opponent');
+      }
+    }
   };
 
   const finalizeSale = (winningTeamId, finalCost) => {
@@ -714,6 +743,7 @@ export function AuctionProvider({ children }) {
       startNomination,
       draftPlayerToMyTeam,
       draftPlayerToOpponent,
+      assignPlayerToTeam,
       removePlayerFromAvailable,
       updateBid,
       finalizeSale,

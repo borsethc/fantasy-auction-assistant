@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuction } from '../context/AuctionContext';
 import { 
   Gavel, DollarSign, Plus, Minus, UserCheck, AlertTriangle, 
-  CheckCircle2, XCircle, Search, Flame, Zap, ShieldAlert, Users, Sparkles, UserX, History 
+  CheckCircle2, XCircle, Search, Flame, Zap, ShieldAlert, Users, Sparkles, UserX, History, Trash2 
 } from 'lucide-react';
 
 export function AuctionPodium() {
@@ -14,7 +14,9 @@ export function AuctionPodium() {
     startNomination, 
     draftPlayerToMyTeam,
     draftPlayerToOpponent,
+    assignPlayerToTeam,
     removePlayerFromAvailable,
+    removePlayerFromRoster,
     updateBid, 
     finalizeSale, 
     cancelNomination, 
@@ -247,47 +249,81 @@ export function AuctionPodium() {
                     </div>
 
                     {/* Action Buttons: + You ($bid) | Opponent ($bid) | Remove | Block */}
-                    <div className="action-buttons-grid">
-                      
-                      {/* 1-Click Draft to MY TEAM */}
-                      <button 
-                        onClick={() => draftPlayerToMyTeam(p, numericBid)}
-                        className="btn btn-success"
-                        style={{ padding: '8px 4px', fontSize: '0.75rem', fontWeight: 800, justifyContent: 'center' }}
-                        title={`Draft to your team for $${numericBid}`}
-                      >
-                        <UserCheck size={14} /> + You (${numericBid})
-                      </button>
+                    {/* Action Buttons & Team Assignment Dropdown */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div className="action-buttons-grid">
+                        {/* 1-Click Draft to MY TEAM */}
+                        <button 
+                          onClick={() => draftPlayerToMyTeam(p, numericBid)}
+                          className="btn btn-success"
+                          style={{ padding: '8px 4px', fontSize: '0.75rem', fontWeight: 800, justifyContent: 'center' }}
+                          title={`Draft to your team for $${numericBid}`}
+                        >
+                          <UserCheck size={14} /> + You (${numericBid})
+                        </button>
 
-                      {/* 1-Click Draft to OPPONENT */}
-                      <button 
-                        onClick={() => draftPlayerToOpponent(p, numericBid)}
-                        className="btn btn-outline"
-                        style={{ padding: '8px 4px', fontSize: '0.75rem', fontWeight: 800, borderColor: 'var(--border-highlight)', color: '#e0e7ff', justifyContent: 'center' }}
-                        title={`Mark taken by opponent for $${numericBid}`}
-                      >
-                        <Users size={14} /> Opponent (${numericBid})
-                      </button>
+                        {/* 1-Click Draft to UNKNOWN TEAM */}
+                        <button 
+                          onClick={() => assignPlayerToTeam(p.id, 'team-opponent', numericBid)}
+                          className="btn btn-outline"
+                          style={{ padding: '8px 4px', fontSize: '0.75rem', fontWeight: 800, borderColor: 'rgba(245, 158, 11, 0.5)', color: '#fbbf24', justifyContent: 'center' }}
+                          title={`Draft to Unknown Team for $${numericBid}`}
+                        >
+                          ❓ Unknown (${numericBid})
+                        </button>
 
-                      {/* Remove / Mark Taken */}
-                      <button 
-                        onClick={() => removePlayerFromAvailable(p, 0)}
-                        className="btn btn-outline"
-                        style={{ padding: '8px 4px', fontSize: '0.75rem', fontWeight: 800, borderColor: 'rgba(239, 68, 68, 0.4)', color: '#f87171', justifyContent: 'center' }}
-                        title="Remove player from available list (Taken)"
-                      >
-                        <UserX size={14} /> Remove
-                      </button>
+                        {/* Remove / Mark Taken */}
+                        <button 
+                          onClick={() => removePlayerFromAvailable(p, 0)}
+                          className="btn btn-outline"
+                          style={{ padding: '8px 4px', fontSize: '0.75rem', fontWeight: 800, borderColor: 'rgba(239, 68, 68, 0.4)', color: '#f87171', justifyContent: 'center' }}
+                          title="Remove player from available list (Taken)"
+                        >
+                          <UserX size={14} /> Remove
+                        </button>
 
-                      {/* Put on Block */}
-                      <button 
-                        onClick={() => handleSelectPlayerForNomination(p, numericBid)}
-                        className="btn btn-outline"
-                        style={{ padding: '8px 4px', fontSize: '0.75rem', fontWeight: 800, borderColor: 'var(--accent-primary-glow)', color: 'var(--accent-primary)', justifyContent: 'center' }}
-                        title="Put on live bidding block"
+                        {/* Put on Block */}
+                        <button 
+                          onClick={() => handleSelectPlayerForNomination(p, numericBid)}
+                          className="btn btn-outline"
+                          style={{ padding: '8px 4px', fontSize: '0.75rem', fontWeight: 800, borderColor: 'var(--accent-primary-glow)', color: 'var(--accent-primary)', justifyContent: 'center' }}
+                          title="Put on live bidding block"
+                        >
+                          <Gavel size={14} /> Block
+                        </button>
+                      </div>
+
+                      {/* Dropdown to assign to any specific team */}
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            assignPlayerToTeam(p.id, e.target.value, numericBid);
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          background: 'rgba(0,0,0,0.5)',
+                          color: '#38bdf8',
+                          border: '1px solid var(--accent-primary)',
+                          borderRadius: '6px',
+                          padding: '6px 10px',
+                          fontSize: '0.775rem',
+                          fontWeight: 700,
+                          outline: 'none',
+                          cursor: 'pointer'
+                        }}
+                        title="Assign to a specific team or Unknown Team"
                       >
-                        <Gavel size={14} /> Block
-                      </button>
+                        <option value="">🎯 Or Assign Directly to Team...</option>
+                        <option value={userTeam.id}>Chad Borseth (You)</option>
+                        <optgroup label="League Managers">
+                          {teamsDetailed.filter(t => !t.isUser && t.id !== 'team-opponent').map(t => (
+                            <option key={t.id} value={t.id}>{t.name} (Max Bid: ${t.maxBid})</option>
+                          ))}
+                        </optgroup>
+                        <option value="team-opponent">❓ Unknown Team (Unassigned)</option>
+                      </select>
                     </div>
                   </div>
                 );
@@ -380,16 +416,16 @@ export function AuctionPodium() {
               )}
             </div>
 
-            {/* Optional Specific Owner Picker */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 600 }}>Assign Owner:</span>
+            {/* Specific Winning Owner Picker */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 700 }}>Assign Winning Team:</span>
               <select 
                 value={activeNomination.highBidderId} 
                 onChange={(e) => updateBid(activeNomination.currentBid, e.target.value)}
                 style={{
                   background: 'var(--bg-card)',
-                  color: highBidderTeam?.isUser ? '#34d399' : 'var(--text-main)',
-                  border: highBidderTeam?.isUser ? '2px solid #10b981' : '1px solid var(--border-color)',
+                  color: highBidderTeam?.isUser ? '#34d399' : (activeNomination.highBidderId === 'team-opponent' ? '#fbbf24' : '#60a5fa'),
+                  border: highBidderTeam?.isUser ? '2px solid #10b981' : (activeNomination.highBidderId === 'team-opponent' ? '2px solid #f59e0b' : '1px solid var(--border-color)'),
                   borderRadius: '6px',
                   padding: '6px 12px',
                   fontSize: '0.9rem',
@@ -398,11 +434,15 @@ export function AuctionPodium() {
                   cursor: 'pointer'
                 }}
               >
-                {teamsDetailed.map(t => (
-                  <option key={t.id} value={t.id}>
-                    {t.name} (Max Bid: ${t.maxBid})
-                  </option>
-                ))}
+                <option value={userTeam.id}>★ {userTeam.name} (Max Bid: ${userTeam.maxBid})</option>
+                <optgroup label="League Managers">
+                  {teamsDetailed.filter(t => !t.isUser && t.id !== 'team-opponent').map(t => (
+                    <option key={t.id} value={t.id}>
+                      {t.name} (Max Bid: ${t.maxBid})
+                    </option>
+                  ))}
+                </optgroup>
+                <option value="team-opponent">❓ Unknown Team (Undetermined)</option>
               </select>
             </div>
 
@@ -469,25 +509,53 @@ export function AuctionPodium() {
               <button 
                 onClick={() => finalizeSale(userTeam.id, activeNomination.currentBid)}
                 className="btn btn-success" 
-                style={{ padding: '14px', fontSize: '0.95rem', fontWeight: 800, boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)' }}
+                style={{ padding: '12px 10px', fontSize: '0.9rem', fontWeight: 800, boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)' }}
                 title="Draft player to your team"
               >
                 <UserCheck size={18} />
                 SOLD TO MY TEAM (${activeNomination.currentBid})
               </button>
 
-              {/* 1-Click SOLD TO OPPONENT */}
+              {/* 1-Click SOLD TO SELECTED OWNER */}
               <button 
-                onClick={() => finalizeSale(activeNomination.highBidderId === userTeam.id ? 'team-opponent' : activeNomination.highBidderId, activeNomination.currentBid)}
+                onClick={() => finalizeSale(activeNomination.highBidderId, activeNomination.currentBid)}
                 className="btn btn-outline" 
-                style={{ padding: '14px', fontSize: '0.95rem', fontWeight: 800, borderColor: 'var(--border-highlight)', background: 'rgba(255,255,255,0.08)' }}
-                title="Mark player as taken by an opponent"
+                style={{ 
+                  padding: '12px 10px', 
+                  fontSize: '0.88rem', 
+                  fontWeight: 800, 
+                  borderColor: activeNomination.highBidderId === 'team-opponent' ? '#f59e0b' : 'var(--accent-primary)', 
+                  color: activeNomination.highBidderId === 'team-opponent' ? '#fbbf24' : '#ffffff',
+                  background: activeNomination.highBidderId === 'team-opponent' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(6, 182, 212, 0.15)' 
+                }}
+                title={`Sell to ${highBidderTeam?.name || 'Selected Team'}`}
               >
                 <Users size={18} />
-                OPPONENT (${activeNomination.currentBid})
+                SOLD TO {activeNomination.highBidderId === 'team-opponent' ? 'UNKNOWN' : (highBidderTeam?.name?.toUpperCase() || 'SELECTED')} (${activeNomination.currentBid})
               </button>
 
             </div>
+
+            {/* 1-Click SOLD TO UNKNOWN TEAM (if user didn't catch who won it) */}
+            <button 
+              onClick={() => finalizeSale('team-opponent', activeNomination.currentBid)}
+              className="btn btn-outline" 
+              style={{ 
+                padding: '10px', 
+                fontSize: '0.85rem', 
+                fontWeight: 700, 
+                borderColor: 'rgba(245, 158, 11, 0.4)', 
+                color: '#fbbf24', 
+                background: 'rgba(245, 158, 11, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px'
+              }}
+              title="Assign to Unknown Team if you cannot tell who won the player"
+            >
+              ❓ SOLD TO UNKNOWN TEAM (${activeNomination.currentBid})
+            </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <button 
@@ -536,28 +604,83 @@ export function AuctionPodium() {
                     borderRadius: '8px', 
                     padding: '10px 12px',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
+                    flexDirection: 'column',
+                    gap: '6px'
                   }}
                 >
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
-                      Pick #{item.pickNum}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                        Pick #{item.pickNum}
+                      </div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ffffff' }}>
+                        {p ? p.name : 'Unknown Player'} <span className={`pos-badge pos-${p?.pos}`} style={{ fontSize: '0.65rem', padding: '1px 4px' }}>{p?.pos}</span>
+                      </div>
                     </div>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#ffffff' }}>
-                      {p ? p.name : 'Unknown Player'} <span className={`pos-badge pos-${p?.pos}`} style={{ fontSize: '0.65rem', padding: '1px 4px' }}>{p?.pos}</span>
-                    </div>
-                    <div style={{ fontSize: '0.75rem', color: isUserTeam ? '#34d399' : 'var(--text-muted)', fontWeight: 600 }}>
-                      Owner: {ownerTeam ? ownerTeam.name : 'Opponent'}
+
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Winning Bid</div>
+                      <div style={{ fontSize: '1.2rem', fontWeight: 800, color: isUserTeam ? '#34d399' : 'var(--accent-primary)' }}>
+                        ${item.cost}
+                      </div>
                     </div>
                   </div>
 
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Winning Bid</div>
-                    <div style={{ fontSize: '1.25rem', fontWeight: 800, color: isUserTeam ? '#34d399' : 'var(--accent-primary)' }}>
-                      ${item.cost}
+                  {/* Re-assign owner dropdown and delete button */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1 }}>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>Team:</span>
+                      <select
+                        value={item.teamId || 'team-opponent'}
+                        onChange={(e) => assignPlayerToTeam(item.playerId, e.target.value, item.cost)}
+                        style={{
+                          background: item.teamId === 'team-opponent' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(0,0,0,0.5)',
+                          color: isUserTeam ? '#34d399' : (item.teamId === 'team-opponent' ? '#fbbf24' : '#93c5fd'),
+                          border: item.teamId === 'team-opponent' ? '1px solid #f59e0b' : '1px solid var(--border-color)',
+                          borderRadius: '4px',
+                          padding: '3px 6px',
+                          fontSize: '0.725rem',
+                          fontWeight: 700,
+                          outline: 'none',
+                          cursor: 'pointer',
+                          width: '100%',
+                          maxWidth: '150px'
+                        }}
+                        title="Reassign team or change to Unknown Team"
+                      >
+                        <option value={userTeam.id}>Chad Borseth (You)</option>
+                        <optgroup label="League Managers">
+                          {teamsDetailed.filter(t => !t.isUser && t.id !== 'team-opponent').map(t => (
+                            <option key={t.id} value={t.id}>{t.name}</option>
+                          ))}
+                        </optgroup>
+                        <option value="team-opponent">❓ Unknown Team</option>
+                      </select>
                     </div>
+
+                    <button
+                      onClick={() => {
+                        if (window.confirm(`Delete ${p?.name || 'player'} from roster and return to available pool?`)) {
+                          removePlayerFromRoster(item.playerId, item.pickNum);
+                        }
+                      }}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.15)',
+                        border: '1px solid rgba(239, 68, 68, 0.35)',
+                        borderRadius: '4px',
+                        color: '#f87171',
+                        padding: '3px 6px',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        fontSize: '0.7rem'
+                      }}
+                      title="Undo pick & return to available pool"
+                    >
+                      <Trash2 size={12} />
+                    </button>
                   </div>
+
                 </div>
               );
             })}

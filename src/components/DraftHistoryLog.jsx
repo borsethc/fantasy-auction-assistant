@@ -111,11 +111,15 @@ export function DraftHistoryLog() {
                           <select 
                             value={editTeamId} 
                             onChange={(e) => setEditTeamId(e.target.value)}
-                            style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', border: '1px solid var(--border-color)', borderRadius: '4px', fontSize: '0.75rem' }}
+                            style={{ background: 'rgba(0,0,0,0.5)', color: '#fff', border: '1px solid var(--border-color)', borderRadius: '4px', fontSize: '0.75rem', padding: '2px 4px' }}
                           >
-                            {teamsDetailed.map(t => (
-                              <option key={t.id} value={t.id}>{t.name}</option>
-                            ))}
+                            <option value={teamsDetailed.find(t => t.isUser)?.id}>Chad Borseth (You)</option>
+                            <optgroup label="League Managers">
+                              {teamsDetailed.filter(t => !t.isUser && t.id !== 'team-opponent').map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                              ))}
+                            </optgroup>
+                            <option value="team-opponent">❓ Unknown Team</option>
                           </select>
                           <input 
                             type="number" 

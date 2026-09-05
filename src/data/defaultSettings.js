@@ -11,7 +11,7 @@ export const DEFAULT_LEAGUE_SETTINGS = {
     },
     {
       "id": "team-opponent",
-      "name": "Other Owner / Opponent",
+      "name": "Unknown Team (Unassigned)",
       "isUser": false
     },
     {
